@@ -73,7 +73,7 @@ def generate_data():
     test_y = labels[10000:]
     test_seqlens = seqlens[10000:]
 
-    return train_x, train_y, train_seqlens, test_x, test_y, test_seqlens
+    return train_x, train_y, train_seqlens, test_x, test_y, test_seqlens, word2index_map
 
 
 def get_sentence_batch(batch_size, data_x,
