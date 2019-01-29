@@ -1,5 +1,5 @@
 # Assignments
-## Assignment 1 (6%): Introduction to word vectors
+## Assignment 1 (6%): Introduction to word vectors --DONE
 ## Assignment 2 (12%): Derivatives and implementation of word2vec algorithm
 - Q1 Written: Understanding word2vec (23 points)
 - Q2 Coding: Implementing word2vec (20 points)

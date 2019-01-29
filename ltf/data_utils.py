@@ -1,13 +1,6 @@
 import numpy as np
 import tensorflow as tf
 
-batch_size = 128
-embedding_dimension = 64
-num_classes = 2
-hidden_layer_size = 32
-times_steps = 6
-element_size = 1
-
 
 def generate_data():
     digit_to_word_map = {1: "One", 2: "Two", 3: "Three", 4: "Four", 5: "Five",
@@ -63,7 +56,6 @@ def generate_data():
                 index += 1
 
     index2word_map = {index: word for word, index in word2index_map.items()}
-    vocabulary_size = len(index2word_map)
 
     # (4) shuffle data
     data_indices = list(range(len(data)))
