@@ -1,89 +1,82 @@
 import numpy as np
-import tensorflow as tf
+
+BATCH_SIZE = 64
+EMBEDDING_DIMENSION = 5
+NEGATIVE_SAMPLES = 8
+LOG_DIR = "logs/word2vec_intro"
+VOCABULARY_SIZE = 9
 
 
-def generate_data():
+def get_skip_gram_data():
+
     digit_to_word_map = {1: "One", 2: "Two", 3: "Three", 4: "Four", 5: "Five",
-                         6: "Six", 7: "Seven", 8: "Eight", 9: "Nine", 0: "PAD"}
+                         6: "Six", 7: "Seven", 8: "Eight", 9: "Nine"}
+    sentences = []
 
-    even_sentences = []
-    odd_sentences = []
-
-    # we keep the original sentence lengths to pass it
-    # to tf.nn.dynamic_rnn()
-    seqlens = []
-
-    # (1) generate even and odd sentences of different length
-    # and pad them to have the same len=6
-    # but keep seqlens
+    # Create two kinds of sentences - sequences of odd and even digits.
+    # ['Five Nine One',
+    #  'Eight Six Two',
+    #  'Five Three Seven',
+    #  'Eight Six Four', ...]
+    np.random.seed(42)
     for i in range(10000):
-        rand_seq_len = np.random.choice(range(3, 7))
-        seqlens.append(rand_seq_len)
-        rand_odd_ints = np.random.choice(range(1, 10, 2),
-                                         rand_seq_len)
-        rand_even_ints = np.random.choice(range(2, 10, 2),
-                                          rand_seq_len)
+        rand_odd_ints = np.random.choice(range(1, 10, 2), 3)
+        sentences.append(" ".join([digit_to_word_map[r] for r in rand_odd_ints]))
+        rand_even_ints = np.random.choice(range(2, 10, 2), 3)
+        sentences.append(" ".join([digit_to_word_map[r] for r in rand_even_ints]))
 
-        if rand_seq_len < 6:
-            rand_odd_ints = np.append(rand_odd_ints,
-                                      [0]*(6-rand_seq_len))
-            rand_even_ints = np.append(rand_even_ints,
-                                       [0]*(6-rand_seq_len))
-
-        even_sentences.append(" ".join([digit_to_word_map[r] for r in rand_even_ints]))
-        odd_sentences.append(" ".join([digit_to_word_map[r] for r in rand_odd_ints]))
-
-    # (2) concatenate data and make one-hot encoding of labels
-    data = even_sentences+odd_sentences
-    seqlens *= 2
-    labels = [1] * 10000 + [0] * 10000
-    for i in range(len(labels)):
-        label = labels[i]
-        one_hot_encoding = [0]*2
-        one_hot_encoding[label] = 1
-        labels[i] = one_hot_encoding
-
-    # (3) create word-to =index and vise versa
-    # why not to use digit_to_word_map?
-    # Note that there is no correspondence between the word IDs and the digits
-    # each word represents—the IDs carry no semantic meaning.
+    # Map words to indices
+    # {'five': 0,
+    #  'nine': 1,
+    #  'one': 2,
+    #  'eight': 3,
+    #  'six': 4,
+    #  'two': 5,
+    #  'three': 6,
+    #  'seven': 7,
+    #  'four': 8}
     word2index_map = {}
     index = 0
-    for sent in data:
+    for sent in sentences:
         for word in sent.lower().split():
             if word not in word2index_map:
                 word2index_map[word] = index
                 index += 1
-
     index2word_map = {index: word for word, index in word2index_map.items()}
 
-    # (4) shuffle data
-    data_indices = list(range(len(data)))
-    np.random.shuffle(data_indices)
-    data = np.array(data)[data_indices]
-    labels = np.array(labels)[data_indices]
-    seqlens = np.array(seqlens)[data_indices]
+    vocabulary_size = len(index2word_map)
 
-    # (5) just split in half fot train and test
-    train_x = data[:10000]
-    train_y = labels[:10000]
-    train_seqlens = seqlens[:10000]
+    # Generate skip-gram pairs
+    # [[1, 0], that's ['Nine', 'Five']
+    #  [1, 2], that's ['Nine', 'One'] and so on
+    #  [4, 3],
+    #  [4, 5], .. ]
+    skip_gram_pairs = []
+    for sent in sentences:
+        tokenized_sent = sent.lower().split()
+        for i in range(1, len(tokenized_sent)-1):
+            word_context_pair = [[word2index_map[tokenized_sent[i-1]],
+                                  word2index_map[tokenized_sent[i+1]]],
+                                 word2index_map[tokenized_sent[i]]]
+            skip_gram_pairs.append([word_context_pair[1],
+                                    word_context_pair[0][0]])
+            skip_gram_pairs.append([word_context_pair[1],
+                                    word_context_pair[0][1]])
 
-    test_x = data[10000:]
-    test_y = labels[10000:]
-    test_seqlens = seqlens[10000:]
-
-    return train_x, train_y, train_seqlens, test_x, test_y, test_seqlens, word2index_map
+    return skip_gram_pairs, word2index_map, index2word_map
 
 
-def get_sentence_batch(batch_size, data_x,
-                       data_y, data_seqlens,
-                       word2index_map):
-    instance_indices = list(range(len(data_x)))
+def get_skipgram_batch(batch_size, skip_gram_pairs):
+    """
+    Split pair in 2 parts: x and y. Why are they doing this?
+    Batch is randomly chosen from skip_gram_pairs.
+    :param batch_size:
+    :param skip_gram_pairs:
+    :return: batch of input data and labels
+    """
+    instance_indices = list(range(len(skip_gram_pairs)))
     np.random.shuffle(instance_indices)
     batch = instance_indices[:batch_size]
-    x = [[word2index_map[word] for word in data_x[i].lower().split()]
-         for i in batch]
-    y = [data_y[i] for i in batch]
-    seqlens = [data_seqlens[i] for i in batch]
-    return x, y, seqlens
+    x = [skip_gram_pairs[i][0] for i in batch]
+    y = [[skip_gram_pairs[i][1]] for i in batch]
+    return x, y
