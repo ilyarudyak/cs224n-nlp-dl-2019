@@ -5,7 +5,7 @@ import random
 
 
 # First implement a gradient checker by filling in the following functions
-def gradcheck_naive(f, x, gradientText):
+def gradcheck_numeric(f, x, gradientText):
     """ Gradient check for a function f.
     Arguments:
     f -- a function that takes a single argument and outputs the
@@ -26,7 +26,7 @@ def gradcheck_naive(f, x, gradientText):
 
         x[ix] += h # increment by h
         random.setstate(rndstate)
-        fxh, _ = f(x) # evalute f(x + h)
+        fxh, _ = f(x) # evaluate f(x + h)
         x[ix] -= 2 * h # restore to previous value (very important!)
         random.setstate(rndstate)
         fxnh, _ = f(x)
