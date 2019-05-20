@@ -206,8 +206,7 @@ def skipgram(currentCenterWord, windowSize, outsideWords, word2Ind,
 #############################################
 
 def word2vec_sgd_wrapper(word2vecModel, word2Ind, wordVectors, dataset,
-                         windowSize,
-                         word2vecLossAndGradient=naiveSoftmaxLossAndGradient):
+                         windowSize, word2vecLossAndGradient=naiveSoftmaxLossAndGradient):
 
     batchsize = 50
     loss = 0.0

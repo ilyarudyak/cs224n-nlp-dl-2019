@@ -6,10 +6,11 @@ import numpy as np
 import os
 import random
 
+
 class StanfordSentiment:
-    def __init__(self, path=None, tablesize = 1000000):
+    def __init__(self, path=None, tablesize=1000000):
         if not path:
-            path = "utils/datasets/stanfordSentimentTreebank"
+            path = "/Users/ilyarudyak/data/cs224n/stanfordSentimentTreebank"
 
         self.path = path
         self.tablesize = tablesize
