@@ -2,15 +2,27 @@
 # -*- coding: utf-8 -*-
 
 import pickle
+from argparse import Namespace
+
 import numpy as np
 import os
 import random
 
 
+args = Namespace(
+    path="/Users/ilyarudyak/data/cs224n/stanfordSentimentTreebank",
+    datasetSentences="/datasetSentences_small.txt",
+    dictionary="/dictionary.txt",
+    sentiment_labels="/sentiment_labels.txt",
+    datasetSplit="/datasetSplit_small.txt",
+    tablesize=1000  # 1000000
+)
+
+
 class StanfordSentiment:
-    def __init__(self, path=None, tablesize=1000000):
+    def __init__(self, path=None, tablesize=args.tablesize):
         if not path:
-            path = "/Users/ilyarudyak/data/cs224n/stanfordSentimentTreebank"
+            path = args.path
 
         self.path = path
         self.tablesize = tablesize
@@ -52,7 +64,7 @@ class StanfordSentiment:
             return self._sentences
 
         sentences = []
-        with open(self.path + "/datasetSentences.txt", "r") as f:
+        with open(self.path + args.datasetSentences, "r") as f:
             first = True
             for line in f:
                 if first:
@@ -117,7 +129,7 @@ class StanfordSentiment:
 
         dictionary = dict()
         phrases = 0
-        with open(self.path + "/dictionary.txt", "r") as f:
+        with open(self.path + args.dictionary, "r") as f:
             for line in f:
                 line = line.strip()
                 if not line: continue
@@ -126,7 +138,7 @@ class StanfordSentiment:
                 phrases += 1
 
         labels = [0.0] * phrases
-        with open(self.path + "/sentiment_labels.txt", "r") as f:
+        with open(self.path + args.sentiment_labels, "r") as f:
             first = True
             for line in f:
                 if first:
