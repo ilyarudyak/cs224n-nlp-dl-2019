@@ -7,6 +7,14 @@ Sahil Chopra <schopra8@stanford.edu>
 """
 
 import sys
+from argparse import Namespace
+
+transitions = Namespace(
+    root='ROOT',
+    shift='S',
+    left_arc='LA',
+    right_arc='RA'
+)
 
 
 class PartialParse(object):
@@ -19,10 +27,10 @@ class PartialParse(object):
         # The sentence being parsed is kept for bookkeeping purposes. Do not alter it in your code.
         self.sentence = sentence
 
-        self.root = 'ROOT'
-        self.shift = 'S'
-        self.left_arc = 'LA'
-        self.right_arc = 'RA'
+        self.root = transitions.root
+        self.shift = transitions.shift
+        self.left_arc = transitions.left_arc
+        self.right_arc = transitions.right_arc
 
         ### YOUR CODE HERE (3 Lines)
         ### Your code should initialize the following fields:
@@ -85,6 +93,12 @@ class PartialParse(object):
             self.parse_step(transition)
         return self.dependencies
 
+    def is_empty(self):
+        if len(self.stack) == 1 and len(self.buffer) == 0:
+            return True
+        else:
+            return False
+
 
 def minibatch_parse(sentences, model, batch_size):
     """Parses a list of sentences in minibatches using a model.
@@ -104,7 +118,6 @@ def minibatch_parse(sentences, model, batch_size):
                                                     same as in sentences (i.e., dependencies[i] should
                                                     contain the parse for sentences[i]).
     """
-    dependencies = []
 
     ### YOUR CODE HERE (~8-10 Lines)
     ### TODO:
@@ -121,24 +134,39 @@ def minibatch_parse(sentences, model, batch_size):
     ###             is being accessed by `partial_parses` and may cause your code to crash.
 
     ### END YOUR CODE
+    partial_parses = [PartialParse(s) for s in sentences]
+    unfinished_parses = partial_parses.copy()
+    while unfinished_parses:
+        minibatch = unfinished_parses[:batch_size]
+        transitions = model.predict(minibatch)
+
+        # that's the same as zip(unfinished_parses[:batch_size], transitions]
+        for p, t in zip(unfinished_parses, transitions):
+            p.parse_step(t)
+
+        for p in unfinished_parses:
+            if p.is_empty():
+                unfinished_parses.remove(p)
+
+    dependencies = [p.dependencies for p in partial_parses]
 
     return dependencies
 
 
 def test_step(name, transition, stack, buf, deps,
-              ex_stack, ex_buf, ex_deps):
+              expected_stack, expected_buf, expected_deps):
     """Tests that a single parse step returns the expected output"""
     pp = PartialParse([])
     pp.stack, pp.buffer, pp.dependencies = stack, buf, deps
 
     pp.parse_step(transition)
     stack, buf, deps = (tuple(pp.stack), tuple(pp.buffer), tuple(sorted(pp.dependencies)))
-    assert stack == ex_stack, \
-        "{:} test resulted in stack {:}, expected {:}".format(name, stack, ex_stack)
-    assert buf == ex_buf, \
-        "{:} test resulted in buffer {:}, expected {:}".format(name, buf, ex_buf)
-    assert deps == ex_deps, \
-        "{:} test resulted in dependency list {:}, expected {:}".format(name, deps, ex_deps)
+    assert stack == expected_stack, \
+        "{:} test resulted in stack {:}, expected {:}".format(name, stack, expected_stack)
+    assert buf == expected_buf, \
+        "{:} test resulted in buffer {:}, expected {:}".format(name, buf, expected_buf)
+    assert deps == expected_deps, \
+        "{:} test resulted in dependency list {:}, expected {:}".format(name, deps, expected_deps)
     print("{:} test passed!".format(name))
 
 
@@ -152,6 +180,49 @@ def test_parse_step():
               ("ROOT", "cat",), ("sat",), (("cat", "the"),))
     test_step("RIGHT-ARC", "RA", ["ROOT", "run", "fast"], [], [],
               ("ROOT", "run",), (), (("run", "fast"),))
+
+
+def test_parse_step_pdf():
+    """
+    More tests for parse_step based on example from pdf.
+    """
+    test_step("step1", transitions.shift, [transitions.root], ['I', 'parsed', 'this', 'sentence', 'correctly'], [],
+              (transitions.root, 'I'), ('parsed', 'this', 'sentence', 'correctly'), ())
+    test_step("step2", transitions.shift, [transitions.root, 'I'], ['parsed', 'this', 'sentence', 'correctly'], [],
+              (transitions.root, 'I', 'parsed'), ('this', 'sentence', 'correctly'), ())
+    test_step("step3", transitions.left_arc, [transitions.root, 'I', 'parsed'], ['this', 'sentence', 'correctly'], [],
+              (transitions.root, 'parsed'), ('this', 'sentence', 'correctly'), (('parsed', 'I'),))
+    test_step("step5", transitions.shift, [transitions.root, 'parsed'], ['this', 'sentence', 'correctly'],
+              [('parsed', 'I')],
+              (transitions.root, 'parsed', 'this'), ('sentence', 'correctly'), (('parsed', 'I'),))
+    test_step("step6", transitions.shift, [transitions.root, 'parsed', 'this'], ['sentence', 'correctly'],
+              [('parsed', 'I')],
+              (transitions.root, 'parsed', 'this', 'sentence'), ('correctly',), (('parsed', 'I'),))
+    test_step("step7", transitions.left_arc, [transitions.root, 'parsed', 'this', 'sentence'], ['correctly'],
+              [('parsed', 'I')],
+              (transitions.root, 'parsed', 'sentence'), ('correctly',),
+              (('parsed', 'I'), ('sentence', 'this')))
+    test_step("step8", transitions.right_arc, [transitions.root, 'parsed', 'sentence'], ['correctly'],
+              [('parsed', 'I'), ('sentence', 'this')],
+              (transitions.root, 'parsed'), ('correctly', ),
+              tuple(sorted((('parsed', 'I'), ('sentence', 'this'), ('parsed', 'sentence'))))
+              )
+    test_step("step9", transitions.shift, [transitions.root, 'parsed'], ['correctly'],
+              [('parsed', 'I'), ('sentence', 'this'), ('parsed', 'sentence')],
+              (transitions.root, 'parsed', 'correctly'), (),
+              tuple(sorted((('parsed', 'I'), ('sentence', 'this'), ('parsed', 'sentence'))))
+              )
+    test_step("step10", transitions.right_arc, [transitions.root, 'parsed', 'correctly'], [],
+              [('parsed', 'I'), ('sentence', 'this'), ('parsed', 'sentence')],
+              (transitions.root, 'parsed'), (),
+              tuple(sorted((('parsed', 'I'), ('sentence', 'this'), ('parsed', 'sentence'), ('parsed', 'correctly'))))
+              )
+    test_step("step11", transitions.right_arc, [transitions.root, 'parsed'], [],
+              [('parsed', 'I'), ('sentence', 'this'), ('parsed', 'sentence'), ('parsed', 'correctly')],
+              (transitions.root,), (),
+              tuple(sorted((('parsed', 'I'), ('sentence', 'this'), ('parsed', 'sentence'), ('parsed', 'correctly'),
+                            (transitions.root, 'parsed'))))
+              )
 
 
 def test_parse():
@@ -169,6 +240,24 @@ def test_parse():
     print("parse test passed!")
 
 
+def test_parse_pdf():
+    sentence = ['I', 'parsed', 'this', 'sentence', 'correctly']
+    dependencies = PartialParse(sentence).parse([transitions.shift,
+                                                 transitions.shift,
+                                                 transitions.left_arc,
+                                                 transitions.shift,
+                                                 transitions.shift,
+                                                 transitions.left_arc,
+                                                 transitions.right_arc,
+                                                 transitions.shift,
+                                                 transitions.right_arc,
+                                                 transitions.right_arc])
+    dependencies = tuple(sorted(dependencies))
+    expected = tuple(sorted((('parsed', 'I'), ('sentence', 'this'), ('parsed', 'sentence'), ('parsed', 'correctly'),
+                            (transitions.root, 'parsed'))))
+    assert dependencies == expected
+
+
 class DummyModel(object):
     """Dummy model for testing the minibatch_parse function
     First shifts everything onto the stack and then does exclusively right arcs if the first word of
@@ -180,11 +269,11 @@ class DummyModel(object):
                 for pp in partial_parses]
 
 
-def test_dependencies(name, deps, ex_deps):
+def test_dependencies(name, deps, expected_deps):
     """Tests the provided dependencies match the expected dependencies"""
     deps = tuple(sorted(deps))
-    assert deps == ex_deps, \
-        "{:} test resulted in dependency list {:}, expected {:}".format(name, deps, ex_deps)
+    assert deps == expected_deps, \
+        "{:} test resulted in dependency list {:}, expected {:}".format(name, deps, expected_deps)
 
 
 def test_minibatch_parse():
@@ -195,7 +284,9 @@ def test_minibatch_parse():
                  ["right", "arcs", "only", "again"],
                  ["left", "arcs", "only"],
                  ["left", "arcs", "only", "again"]]
-    deps = minibatch_parse(sentences, DummyModel(), 2)
+    deps = minibatch_parse(sentences=sentences,
+                           model=DummyModel(),
+                           batch_size=2)
     test_dependencies("minibatch_parse", deps[0],
                       (('ROOT', 'right'), ('arcs', 'only'), ('right', 'arcs')))
     test_dependencies("minibatch_parse", deps[1],
