@@ -72,6 +72,8 @@ class PartialParse(object):
             dependent = self.stack.pop(-2)
             self.dependencies.append((head, dependent))
         elif transition == self.right_arc:
+            if len(self.stack) < 2:
+                raise ValueError('stack is too short')
             head = self.stack[-2]
             dependent = self.stack.pop(-1)
             self.dependencies.append((head, dependent))
@@ -135,16 +137,13 @@ def minibatch_parse(sentences, model, batch_size):
 
     ### END YOUR CODE
     partial_parses = [PartialParse(s) for s in sentences]
-    unfinished_parses = partial_parses.copy()
+    unfinished_parses = partial_parses[:]
     while unfinished_parses:
         minibatch = unfinished_parses[:batch_size]
         transitions = model.predict(minibatch)
 
-        # that's the same as zip(unfinished_parses[:batch_size], transitions]
-        for p, t in zip(unfinished_parses, transitions):
+        for p, t in zip(unfinished_parses[:batch_size], transitions):
             p.parse_step(t)
-
-        for p in unfinished_parses:
             if p.is_empty():
                 unfinished_parses.remove(p)
 
