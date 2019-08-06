@@ -45,7 +45,7 @@ def train(parser, train_data, dev_data, output_path, batch_size=1024, n_epochs=1
     ### Please see the following docs for support:
     ###     Adam Optimizer: https://pytorch.org/docs/stable/optim.html
     ###     Cross Entropy Loss: https://pytorch.org/docs/stable/nn.html#crossentropyloss
-    optimizer = optim.Adam(parser.model.parameters())
+    optimizer = optim.Adam(parser.model.parameters(), lr=lr)
     loss_func = nn.CrossEntropyLoss()
     ### END YOUR CODE
 
