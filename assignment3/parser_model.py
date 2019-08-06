@@ -48,6 +48,7 @@ class ParserModel(nn.Module):
         self.dropout_prob = dropout_prob
         self.embed_size = embeddings.shape[1]
         self.hidden_size = hidden_size
+
         self.pretrained_embeddings = nn.Embedding(embeddings.shape[0], self.embed_size)
         self.pretrained_embeddings.weight = nn.Parameter(torch.tensor(embeddings))
 
@@ -76,10 +77,12 @@ class ParserModel(nn.Module):
 
         self.embed_to_hidden = nn.Linear(in_features=self.n_features*self.embed_size,
                                          out_features=self.hidden_size)
-        nn.init.xavier_uniform_(self.embed_to_hidden.weight)
+        nn.init.xavier_uniform_(self.embed_to_hidden.weight, gain=nn.init.calculate_gain('relu'))
+
         self.dropout = nn.Dropout(p=self.dropout_prob)
+
         self.hidden_to_logits = nn.Linear(self.hidden_size, self.n_classes)
-        nn.init.xavier_uniform_(self.hidden_to_logits.weight)
+        nn.init.xavier_uniform_(self.hidden_to_logits.weight, gain=nn.init.calculate_gain('relu'))
 
         ### END YOUR CODE
 
@@ -89,9 +92,11 @@ class ParserModel(nn.Module):
 
             PyTorch Notes:
                 - `self.pretrained_embeddings` is a torch.nn.Embedding object that we defined in __init__
-                - Here `t` is a tensor where each row represents a list of features. Each feature is represented by an integer (input token).
+                - Here `t` is a tensor where each row represents a list of features. Each feature is represented
+                by an integer (input token).
                 - In PyTorch the Embedding object, e.g. `self.pretrained_embeddings`, allows you to
-                    go from an index to embedding. Please see the documentation (https://pytorch.org/docs/stable/nn.html#torch.nn.Embedding)
+                    go from an index to embedding. Please see the documentation
+                    (https://pytorch.org/docs/stable/nn.html#torch.nn.Embedding)
                     to learn how to use `self.pretrained_embeddings` to extract the embeddings for your tensor `t`.
 
             @param t (Tensor): input tensor of tokens (batch_size, n_features)
@@ -102,8 +107,10 @@ class ParserModel(nn.Module):
         ### YOUR CODE HERE (~1-3 Lines)
         ### TODO:
         ###     1) Use `self.pretrained_embeddings` to lookup the embeddings for the input tokens in `t`.
-        ###     2) After you apply the embedding lookup, you will have a tensor shape (batch_size, n_features, embedding_size).
-        ###         Use the tensor `view` method to reshape the embeddings tensor to (batch_size, n_features * embedding_size)
+        ###     2) After you apply the embedding lookup, you will have a tensor shape
+        #       (batch_size, n_features, embedding_size).
+        ###         Use the tensor `view` method to reshape the embeddings tensor to
+        #       (batch_size, n_features * embedding_size)
         ###
         ### Note: In order to get batch_size, you may need use the tensor .size() function:
         ###         https://pytorch.org/docs/stable/tensors.html#torch.Tensor.size
@@ -121,7 +128,8 @@ class ParserModel(nn.Module):
     def forward(self, t):
         """ Run the model forward.
 
-            Note that we will not apply the softmax function here because it is included in the loss function nn.CrossEntropyLoss
+            Note that we will not apply the softmax function here because it is included in the loss
+            function nn.CrossEntropyLoss
 
             PyTorch Notes:
                 - Every nn.Module object (PyTorch model) has a `forward` function.
