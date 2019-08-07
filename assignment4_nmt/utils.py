@@ -39,6 +39,12 @@ def pad_sent(sent, pad_token, max_len):
     return [sent[i] if i < len(sent) else pad_token for i in range(max_len)]
 
 
+def test_pad_sents():
+    sents = [['a', 'b', 'c'], ['a', 'b', 'c', 'd', 'e'], ['a'], ['a', 'b'], ['a', 'b', 'c', 'd']]
+    sents_padded = pad_sents(sents, pad_token='x')
+    assert tuple(sents_padded[0]) == ('a', 'b', 'c', 'x', 'x'), 'something wrong ...'
+
+
 def read_corpus(file_path, source):
     """ Read file, where each sentence is dilineated by a `\n`.
     @param file_path (str): path to file containing corpus
@@ -80,8 +86,5 @@ def batch_iter(data, batch_size, shuffle=False):
 
 
 if __name__ == '__main__':
-    sents = [['a', 'b', 'c'], ['a', 'b', 'c', 'd', 'e'], ['a'], ['a', 'b'], ['a', 'b', 'c', 'd']]
-    pad_token = 'x'
-    pad_sents = pad_sents(sents, pad_token)
-    print(pad_sents)
+    test_pad_sents()
 
