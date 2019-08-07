@@ -26,15 +26,17 @@ def pad_sents(sents, pad_token):
         than the max length sentence are padded out with the pad_token, such that
         each sentences in the batch now has equal length.
     """
-    sents_padded = []
 
     ### YOUR CODE HERE (~6 Lines)
-
+    max_len = len(max(sents, key=lambda x: len(x)))
 
     ### END YOUR CODE
 
-    return sents_padded
+    return [pad_sent(sent, pad_token, max_len) for sent in sents]
 
+
+def pad_sent(sent, pad_token, max_len):
+    return [sent[i] if i < len(sent) else pad_token for i in range(max_len)]
 
 
 def read_corpus(file_path, source):
@@ -75,4 +77,11 @@ def batch_iter(data, batch_size, shuffle=False):
         tgt_sents = [e[1] for e in examples]
 
         yield src_sents, tgt_sents
+
+
+if __name__ == '__main__':
+    sents = [['a', 'b', 'c'], ['a', 'b', 'c', 'd', 'e'], ['a'], ['a', 'b'], ['a', 'b', 'c', 'd']]
+    pad_token = 'x'
+    pad_sents = pad_sents(sents, pad_token)
+    print(pad_sents)
 
