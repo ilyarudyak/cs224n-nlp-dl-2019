@@ -149,7 +149,7 @@ class VocabEntry(object):
 
 
 class Vocab(object):
-    """ Vocab encapsulating src and target langauges.
+    """ Vocab encapsulating src and target languages.
     """
     def __init__(self, src_vocab: VocabEntry, tgt_vocab: VocabEntry):
         """ Init Vocab.
@@ -200,7 +200,6 @@ class Vocab(object):
         when printing the object.
         """
         return 'Vocab(source %d words, target %d words)' % (len(self.src), len(self.tgt))
-
 
 
 if __name__ == '__main__':
