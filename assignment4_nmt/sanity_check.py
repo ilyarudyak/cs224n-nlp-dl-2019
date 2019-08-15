@@ -41,6 +41,7 @@ EMBED_SIZE = 3
 HIDDEN_SIZE = 3
 DROPOUT_RATE = 0.0
 
+
 def reinitialize_layers(model):
     """ Reinitialize the Layer Weights for Sanity Checks.
     """
@@ -89,7 +90,7 @@ def question_1d_sanity_check(model, src_sents, tgt_sents, vocab):
         Compares student output to that of model with dummy data.
     """
     print("Running Sanity Check for Question 1d: Encode")
-    print ("-"*80)
+    print("-"*80)
 
     # Configure for Testing
     reinitialize_layers(model)
@@ -149,6 +150,7 @@ def question_1e_sanity_check(model, src_sents, tgt_sents, vocab):
     print ("-"*80)
     print("All Sanity Checks Passed for Question 1e: Decode!")
     print ("-"*80)
+
 
 def question_1f_sanity_check(model, src_sents, tgt_sents, vocab):
     """ Sanity check for question 1f. 
