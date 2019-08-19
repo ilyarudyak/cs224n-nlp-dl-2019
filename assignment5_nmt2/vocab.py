@@ -48,7 +48,7 @@ class VocabEntry(object):
         ## Additions to the A4 code:
         self.char_list = list("""ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789,;.!?:'\"/\\|_@#$%^&*~`+-=<>()[]""")
 
-        self.char2id = dict() # Converts characters to integers
+        self.char2id = dict()  # Converts characters to integers
         self.char2id['<pad>'] = 0
         self.char2id['{'] = 1
         self.char2id['}'] = 2
@@ -124,12 +124,14 @@ class VocabEntry(object):
         ###     This method should convert characters in the input sentences into their 
         ###     corresponding character indices using the character vocabulary char2id 
         ###     defined above.
-        ###
         ###     You must prepend each word with the `start_of_word` character and append 
         ###     with the `end_of_word` character. 
 
-
+        return [[self.w2ci(word) for word in sent] for sent in sents]
         ### END YOUR CODE
+
+    def w2ci(self, word):
+        return [self.char2id['{']] + [self.char2id[ch] for ch in word] + [self.char2id['}']]
 
     def words2indices(self, sents):
         """ Convert list of sentences of words into list of list of indices.
@@ -247,7 +249,6 @@ class Vocab(object):
         when printing the object.
         """
         return 'Vocab(source %d words, target %d words)' % (len(self.src), len(self.tgt))
-
 
 
 if __name__ == '__main__':
