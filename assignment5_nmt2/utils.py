@@ -60,12 +60,15 @@ def pad_sents(sents, pad_token):
     sents_padded = []
 
     ### COPY OVER YOUR CODE FROM ASSIGNMENT 4
-
-
+    max_len = len(max(sents, key=lambda x: len(x)))
+    sents_padded = [pad_sent(sent, pad_token, max_len) for sent in sents]
     ### END YOUR CODE FROM ASSIGNMENT 4
 
     return sents_padded
 
+
+def pad_sent(sent, pad_token, max_len):
+    return [sent[i] if i < len(sent) else pad_token for i in range(max_len)]
 
 
 def read_corpus(file_path, source):
