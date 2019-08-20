@@ -149,18 +149,21 @@ class VocabEntry(object):
 
     def to_input_tensor_char(self, sents: List[List[str]], device: torch.device) -> torch.Tensor:
         """ Convert list of sentences (words) into tensor with necessary padding for 
-        shorter sentences.
+            shorter sentences.
 
-        @param sents (List[List[str]]): list of sentences (words)
-        @param device: device on which to load the tensor, i.e. CPU or GPU
+            @param sents: (List[List[str]]) list of sentences (words)
+            @param device: device on which to load the tensor, i.e. CPU or GPU
 
-        @returns sents_var: tensor of (max_sentence_length, batch_size, max_word_length)
+            @returns sents_var: tensor of (max_sentence_length, batch_size, max_word_length)
         """
         ### YOUR CODE HERE for part 1g
         ### TODO: 
         ###     Connect `words2charindices()` and `pad_sents_char()` which you've defined in 
         ###     previous parts
-        
+        word_ids = self.words2charindices(sents)
+        sents_pad = pad_sents_char(word_ids, self.char2id['<pad>'])
+        sents_var = torch.tensor(sents_pad, dtype=torch.long, device=device)
+        return sents_var.permute(1, 0, 2)
 
         ### END YOUR CODE
 
