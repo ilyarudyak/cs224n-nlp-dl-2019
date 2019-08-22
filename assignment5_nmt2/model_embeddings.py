@@ -17,22 +17,25 @@ import torch.nn as nn
 #   `Highway` in the file `highway.py`
 # Uncomment the following two imports once you're ready to run part 1(j)
 
-# from cnn import CNN
-# from highway import Highway
+from cnn import CNN
+from highway import Highway
 
-# End "do not change" 
 
-class ModelEmbeddings(nn.Module): 
+# End "do not change"
+
+
+class ModelEmbeddings(nn.Module):
     """
     Class that converts input words to their CNN-based embeddings.
     """
+
     def __init__(self, embed_size, vocab):
         """
         Init the Embedding layer for one language
         @param embed_size (int): Embedding size (dimensionality) for the output 
         @param vocab (VocabEntry): VocabEntry object. See vocab.py for documentation.
         """
-        super(ModelEmbeddings, self).__init__()
+        super().__init__()
 
         ## A4 code
         # pad_token_idx = vocab.src['<pad>']
@@ -40,8 +43,21 @@ class ModelEmbeddings(nn.Module):
         ## End A4 code
 
         ### YOUR CODE HERE for part 1j
+        self.embed_size = embed_size
+        self.char_embed_size = 50
+        self.max_word_len = 21
+        self.dropout_rate = 0.3
+        self.vocab = vocab
 
-
+        self.embed = nn.Embedding(num_embeddings=len(vocab.char2id),
+                                  embedding_dim=50,
+                                  padding_idx=vocab.char2id['<pad>'])
+        self.cnn = CNN(char_embed_size=50,
+                       num_filters=embed_size,
+                       max_word_length=21,
+                       kernel_size=5)
+        self.highway = Highway(word_embed_size=embed_size)
+        self.dropout = nn.Dropout(p=.3)
         ### END YOUR CODE
 
     def forward(self, input):
@@ -59,7 +75,14 @@ class ModelEmbeddings(nn.Module):
         ## End A4 code
 
         ### YOUR CODE HERE for part 1j
+        x_emb = self.embed(input)
+        sent_len, batch_size, max_word, _ = x_emb.shape
+        view_shape = (sent_len * batch_size, max_word, self.char_embed_size)
+        x_emb = x_emb.view(view_shape).transpose(1, 2)
 
+        x_conv_out = self.cnn(x_emb)
+        x_highway = self.highway(x_conv_out)
+        x_word_emb = self.dropout(x_highway)
 
+        return x_word_emb.view(sent_len, batch_size, self.embed_size)
         ### END YOUR CODE
-

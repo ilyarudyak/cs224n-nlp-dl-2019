@@ -16,7 +16,7 @@ class Highway(nn.Module):
     with skip-connection and dynamic gate.
     """
 
-    def __init__(self, word_embed_size: torch.Tensor):
+    def __init__(self, word_embed_size: int):
         super().__init__()
 
         self.proj = nn.Linear(in_features=word_embed_size, out_features=word_embed_size, bias=True)
