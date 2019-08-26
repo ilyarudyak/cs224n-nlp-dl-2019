@@ -318,7 +318,7 @@ def beam_search(model: NMT, test_data_src: List[List[str]], beam_size: int, max_
     return hypotheses
 
 
-def main():a
+def main():
     """ Main func.
     """
     args = docopt(__doc__)

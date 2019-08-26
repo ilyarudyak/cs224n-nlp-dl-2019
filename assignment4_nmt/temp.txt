@@ -1,0 +1,1 @@
+python3 run.py train --train-src=./en_es_data/train.es --train-tgt=./en_es_data/train.en --dev-src=./en_es_data/dev.es --dev-tgt=./en_es_data/dev.en --vocab=vocab.json --log-every=1000 --max-epoch=10 --valid-niter=10000
