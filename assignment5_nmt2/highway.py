@@ -29,7 +29,7 @@ class Highway(nn.Module):
         :return x_highway: torch.Tensor output of highway network (batch_size, word_embed_size)
         """
         x_proj = F.relu(self.proj(x_conv_out))
-        x_gate = F.sigmoid(self.gate(x_conv_out))
+        x_gate = torch.sigmoid(self.gate(x_conv_out))
         x_highway = x_gate * x_proj + (1 - x_gate) * x_conv_out
         return x_highway
 

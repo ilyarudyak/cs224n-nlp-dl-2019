@@ -43,21 +43,22 @@ class ModelEmbeddings(nn.Module):
         ## End A4 code
 
         ### YOUR CODE HERE for part 1j
-        self.embed_size = embed_size
+        self.word_embed_size = embed_size
         self.char_embed_size = 50
         self.max_word_len = 21
         self.dropout_rate = 0.3
         self.vocab = vocab
+        self.kernel_size = 5
 
         self.embed = nn.Embedding(num_embeddings=len(vocab.char2id),
-                                  embedding_dim=50,
+                                  embedding_dim=self.char_embed_size,
                                   padding_idx=vocab.char2id['<pad>'])
-        self.cnn = CNN(char_embed_size=50,
+        self.cnn = CNN(char_embed_size=self.char_embed_size,
                        num_filters=embed_size,
-                       max_word_length=21,
-                       kernel_size=5)
+                       max_word_length=self.max_word_len,
+                       kernel_size=self.kernel_size)
         self.highway = Highway(word_embed_size=embed_size)
-        self.dropout = nn.Dropout(p=.3)
+        self.dropout = nn.Dropout(p=self.dropout_rate)
         ### END YOUR CODE
 
     def forward(self, input):
@@ -84,5 +85,5 @@ class ModelEmbeddings(nn.Module):
         x_highway = self.highway(x_conv_out)
         x_word_emb = self.dropout(x_highway)
 
-        return x_word_emb.view(sent_len, batch_size, self.embed_size)
+        return x_word_emb.view(sent_len, batch_size, self.word_embed_size)
         ### END YOUR CODE

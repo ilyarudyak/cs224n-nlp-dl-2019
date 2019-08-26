@@ -7,7 +7,11 @@ sanity_check.py: sanity checks for assignment 5
 Usage:
     sanity_check.py 1e
     sanity_check.py 1f
+    sanity_check.py 1g
+    sanity_check.py 1h
+    sanity_check.py 1i
     sanity_check.py 1j
+    sanity_check.py 1k
     sanity_check.py 2a
     sanity_check.py 2b
     sanity_check.py 2c
@@ -29,6 +33,7 @@ from vocab import Vocab, VocabEntry
 
 from char_decoder import CharDecoder
 from nmt_model import NMT
+from highway import Highway
 
 import torch
 import torch.nn as nn
@@ -108,10 +113,74 @@ def question_1f_sanity_check():
     print("-" * 80)
 
 
+def question_1g_sanity_check():
+    print("-" * 80)
+    print("Running Sanity Check for Question 1g: to_input_tensor_char()")
+    print("-" * 80)
+
+    vocab_entry = VocabEntry()
+    sentences = [['Human:', 'What', 'do', 'we', 'want?'],
+                 ['Computer:', 'Natural', 'language', 'processing!'],
+                 ['Human:', 'When', 'do', 'we', 'want', 'it?'],
+                 ['Computer:', 'When', 'do', 'we', 'want', 'what?']]
+
+    sents_var = vocab_entry.to_input_tensor_char(sentences, torch.device('cpu'))
+
+    print('Checking if the type is correct...')
+    assert isinstance(sents_var, torch.LongTensor)
+
+    print('Checking if the shape is correct...')
+    assert tuple(sents_var.shape) == (6, 4, 21)
+
+    print("Sanity Check Passed for Question 1g: to_input_tensor_char()")
+    print("-" * 80)
+
+
+# NEW
+def question_1h_sanity_check():
+    print("-" * 80)
+    print("Running Sanity Check for Question 1h: Highway")
+    print("-" * 80)
+
+    x_conv_out = torch.load('./sanity_check_en_es_data/1h_x_conv_out.pt')
+    x_highway_tgt = torch.load('./sanity_check_en_es_data/1h_x_highway.pt')
+
+    word_embed_size = 256
+    torch.manual_seed(42)
+    highway = Highway(word_embed_size=word_embed_size)
+    x_highway = highway(x_conv_out)
+
+    assert torch.allclose(x_highway_tgt, x_highway)
+
+    print("Sanity Check Passed for Question 1h: Highway!")
+    print("-" * 80)
+
+
+# TODO
+def question_1i_sanity_check():
+    print("-" * 80)
+    print("Running Sanity Check for Question 1i: CNN")
+    print("-" * 80)
+
+    # x_conv_out = torch.load('./sanity_check_en_es_data/1h_x_conv_out.pt')
+    # x_highway_tgt = torch.load('./sanity_check_en_es_data/1h_x_highway.pt')
+    #
+    # word_embed_size = 256
+    # torch.manual_seed(42)
+    # highway = Highway(word_embed_size=word_embed_size)
+    # x_highway = highway(x_conv_out)
+    #
+    # assert torch.allclose(x_highway_tgt, x_highway)
+
+    print("Sanity Check Passed for Question 1i: CNN")
+    print("-" * 80)
+
+
 def question_1j_sanity_check(model):
-    """ Sanity check for model_embeddings.py
-		basic shape check
-	"""
+    """
+    Sanity check for model_embeddings.py
+    basic shape check
+    """
     print("-" * 80)
     print("Running Sanity Check for Question 1j: Model Embedding")
     print("-" * 80)
@@ -125,6 +194,26 @@ def question_1j_sanity_check(model):
         output.size()) == output_expected_size), "output shape is incorrect: it should be:\n {} but is:\n{}".format(
         output_expected_size, list(output.size()))
     print("Sanity Check Passed for Question 1j: Model Embedding!")
+    print("-" * 80)
+
+
+# TODO
+def question_1k_sanity_check():
+    print("-" * 80)
+    print("Running Sanity Check for Question 1k: NMT forward()")
+    print("-" * 80)
+
+    # x_conv_out = torch.load('./sanity_check_en_es_data/1h_x_conv_out.pt')
+    # x_highway_tgt = torch.load('./sanity_check_en_es_data/1h_x_highway.pt')
+    #
+    # word_embed_size = 256
+    # torch.manual_seed(42)
+    # highway = Highway(word_embed_size=word_embed_size)
+    # x_highway = highway(x_conv_out)
+    #
+    # assert torch.allclose(x_highway_tgt, x_highway)
+
+    print("Sanity Check Passed for Question 1k: NMT forward()")
     print("-" * 80)
 
 
@@ -215,6 +304,10 @@ def question_2d_sanity_check(decoder):
     print("-" * 80)
 
 
+def is_equal(x: torch.Tensor, y: torch.Tensor) -> bool:
+    return torch.allclose(x, y)
+
+
 def main():
     """ Main func.
     """
@@ -254,8 +347,26 @@ def main():
         question_1e_sanity_check()
     elif args['1f']:
         question_1f_sanity_check()
+
+    # NEW
+    elif args['1g']:
+        question_1g_sanity_check()
+
+    # NEW
+    elif args['1h']:
+        question_1h_sanity_check()
+
+    # NEW
+    elif args['1i']:
+        question_1i_sanity_check()
+
     elif args['1j']:
         question_1j_sanity_check(model)
+
+    # NEW
+    elif args['1k']:
+        question_1k_sanity_check()
+
     elif args['2a']:
         question_2a_sanity_check(decoder, char_vocab)
     elif args['2b']:
