@@ -99,7 +99,8 @@ def compute_corpus_level_bleu_score(references: List[List[str]], hypotheses: Lis
     if references[0][0] == '<s>':
         references = [ref[1:-1] for ref in references]
     bleu_score = corpus_bleu([[ref] for ref in references],
-                             [hyp.value for hyp in hypotheses])
+                             [hyp.value for hyp in hypotheses],
+                             smoothing_function=SmoothingFunction().method1)
     return bleu_score
 
 
