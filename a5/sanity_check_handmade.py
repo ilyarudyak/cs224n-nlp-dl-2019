@@ -25,7 +25,7 @@ import numpy as np
 from nmt_model import NMT
 
 from highway import Highway
-from char_decoder import CharDecoder
+from char_decoder_2 import CharDecoder
 from vocab import Vocab
 
 BATCH_SIZE    = 5
