@@ -20,49 +20,45 @@ import torch.nn as nn
 from cnn import CNN
 from highway import Highway
 
+
 # End "do not change"
 
-class ModelEmbeddings(nn.Module): 
+
+class ModelEmbeddings(nn.Module):
     """
     Class that converts input words to their CNN-based embeddings.
     """
+
     def __init__(self, embed_size, vocab):
         """
         Init the Embedding layer for one language
         @param embed_size (int): Embedding size (dimensionality) for the output 
         @param vocab (VocabEntry): VocabEntry object. See vocab.py for documentation.
         """
-        super(ModelEmbeddings, self).__init__()
+        super().__init__()
 
         ## A4 code
         # pad_token_idx = vocab.src['<pad>']
         # self.embeddings = nn.Embedding(len(vocab.src), embed_size, padding_idx=pad_token_idx)
         ## End A4 code
 
+        ### YOUR CODE HERE for part 1j
         self.embed_size = embed_size
         self.char_embed_size = 50
-        self.max_word_len    = 21
-        self.dropout_rate    = 0.3
-        self.vocab           = vocab
+        self.max_word_len = 21
+        self.dropout_rate = 0.3
+        self.vocab = vocab
+        self.kernel_size = 5
 
-        self.char_embedding  = nn.Embedding(
-            num_embeddings =len(vocab.char2id),
-            embedding_dim  =self.char_embed_size,
-            padding_idx    =vocab.char2id['<pad>'],
-
-        )
-
-        self.CNN = CNN(
-            char_embed_size=self.char_embed_size,
-            num_filters=embed_size,
-            max_word_length=self.max_word_len,
-        )
-
-        self.Highway = Highway(word_embed_size=embed_size)
+        self.embed = nn.Embedding(num_embeddings=len(vocab.char2id),
+                                  embedding_dim=self.char_embed_size,
+                                  padding_idx=vocab.char2id['<pad>'])
+        self.cnn = CNN(char_embed_size=self.char_embed_size,
+                       num_filters=embed_size,
+                       max_word_length=self.max_word_len,
+                       kernel_size=self.kernel_size)
+        self.highway = Highway(word_embed_size=embed_size)
         self.dropout = nn.Dropout(p=self.dropout_rate)
-        ### YOUR CODE HERE for part 1j
-
-
         ### END YOUR CODE
 
     def forward(self, input):
@@ -79,20 +75,15 @@ class ModelEmbeddings(nn.Module):
         # return output
         ## End A4 code
 
-        char_embeddings = self.char_embedding(input) # sentence_length, batch_size, max_word_length,
-        sent_len, batch_size, max_word, _ = char_embeddings.shape
-        view_shape = (sent_len * batch_size, max_word, self.char_embed_size)
-        # bb = sent_len * batch_size
-        # bb, char_embed, max_word because 1D CNN only convolve in last dimension
-        char_embeddings = char_embeddings.view(view_shape).transpose(1, 2)
-
-        x_conv    = self.CNN(char_embeddings) # bb, word_embed_size
-        x_highway = self.Highway(x_conv)
-        output    = self.dropout(x_highway) # bb, word_embed
-        output    = output.view(sent_len, batch_size, self.embed_size)
-        return output
         ### YOUR CODE HERE for part 1j
+        x_emb = self.embed(input)
+        sent_len, batch_size, max_word, _ = x_emb.shape
+        view_shape = (sent_len * batch_size, max_word, self.char_embed_size)
+        x_emb = x_emb.view(view_shape).transpose(1, 2)
 
+        x_conv_out = self.cnn(x_emb)
+        x_highway = self.highway(x_conv_out)
+        x_word_emb = self.dropout(x_highway)
 
+        return x_word_emb.view(sent_len, batch_size, self.embed_size)
         ### END YOUR CODE
-

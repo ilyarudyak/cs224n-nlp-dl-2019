@@ -178,7 +178,7 @@ def question_1i_sanity_check():
 
 def question_1j_sanity_check(model):
     """
-    Sanity check for model_embeddings.py
+    Sanity check for model_embeddings_2.py
     basic shape check
     """
     print("-" * 80)

@@ -3,7 +3,7 @@
 
 """
 CS224N 2018-19: Homework 4
-model_embeddings.py: Embeddings for the NMT model
+model_embeddings_2.py: Embeddings for the NMT model
 Pencheng Yin <pcyin@cs.cmu.edu>
 Sahil Chopra <schopra8@stanford.edu>
 Anand Dhoot <anandd@stanford.edu>
