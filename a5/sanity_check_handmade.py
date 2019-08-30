@@ -16,7 +16,7 @@ Options:
 
 from docopt import docopt
 
-from cnn_2 import CNN
+from cnn import CNN
 from sanity_check import DummyVocab
 
 import torch
@@ -24,8 +24,8 @@ import torch.nn as nn
 import numpy as np
 from nmt_model import NMT
 
-from highway_2 import Highway
-from char_decoder_2 import CharDecoder
+from highway import Highway
+from char_decoder import CharDecoder
 from vocab import Vocab
 
 BATCH_SIZE    = 5

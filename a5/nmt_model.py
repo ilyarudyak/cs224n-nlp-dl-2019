@@ -17,7 +17,7 @@ import torch.nn.functional as F
 from torch.nn.utils.rnn import pad_packed_sequence, pack_padded_sequence
 
 from model_embeddings import ModelEmbeddings
-from char_decoder_2 import CharDecoder
+from char_decoder import CharDecoder
 
 Hypothesis = namedtuple('Hypothesis', ['value', 'score'])
 
