@@ -17,8 +17,8 @@ import torch.nn as nn
 #   `Highway` in the file `highway_2.py`
 # Uncomment the following two imports once you're ready to run part 1(j)
 
-from cnn_2 import CNN
-from highway_2 import Highway
+from cnn import CNN
+from highway import Highway
 
 
 # End "do not change"
