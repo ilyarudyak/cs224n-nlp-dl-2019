@@ -31,9 +31,9 @@ from tqdm import tqdm
 from utils import pad_sents_char, read_corpus, batch_iter
 from vocab import Vocab, VocabEntry
 
-from char_decoder_2 import CharDecoder
+from char_decoder import CharDecoder
 from nmt_model import NMT
-from highway_2 import Highway
+from highway import Highway
 
 import torch
 import torch.nn as nn
