@@ -16,7 +16,7 @@ Options:
 
 from docopt import docopt
 
-from cnn import CNN
+from cnn_2 import CNN
 from sanity_check import DummyVocab
 
 import torch
@@ -24,7 +24,7 @@ import torch.nn as nn
 import numpy as np
 from nmt_model import NMT
 
-from highway import Highway
+from highway_2 import Highway
 from char_decoder_2 import CharDecoder
 from vocab import Vocab
 
@@ -79,7 +79,7 @@ def question_1h_generate_data():
 
 def question_1h_sanity_check(highway):
     """
-    Sanity check for highway.py, basic shape check and forward pass check
+    Sanity check for highway_2.py, basic shape check and forward pass check
     """
     reinitialize_layers(highway) #
     # print("Running shape check")

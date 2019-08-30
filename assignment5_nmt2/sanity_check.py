@@ -33,7 +33,7 @@ from vocab import Vocab, VocabEntry
 
 from char_decoder_2 import CharDecoder
 from nmt_model import NMT
-from highway import Highway
+from highway_2 import Highway
 
 import torch
 import torch.nn as nn
