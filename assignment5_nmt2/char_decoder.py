@@ -7,7 +7,6 @@ CS224N 2018-19: Homework 5
 
 import torch
 import torch.nn as nn
-from torch.nn.utils.rnn import pack_padded_sequence
 
 
 class CharDecoder(nn.Module):
@@ -30,17 +29,18 @@ class CharDecoder(nn.Module):
         ###       - Set the padding_idx argument of the embedding matrix.
         ###       - Create a new Embedding layer. Do not reuse embeddings created in Part 1 of this assignment.
 
-        super(CharDecoder, self).__init__()
-        V = len(target_vocab.char2id)
-        self.charDecoder            = nn.LSTM(char_embedding_size, hidden_size) # uni directional
-        self.char_output_projection = nn.Linear(hidden_size, V, bias=True)
-        self.decoderCharEmb         = nn.Embedding(V, char_embedding_size, padding_idx=target_vocab.char2id['<pad>'])
-        self.target_vocab           = target_vocab
-
+        super().__init__()
+        self.charDecoder = nn.LSTM(input_size=char_embedding_size,
+                                   hidden_size=hidden_size)
+        self.char_output_projection = nn.Linear(in_features=hidden_size,
+                                                out_features=len(target_vocab.char2id),
+                                                bias=True)
+        self.decoderCharEmb = nn.Embedding(num_embeddings=len(target_vocab.char2id),
+                                           embedding_dim=char_embedding_size,
+                                           padding_idx=target_vocab.char2id['<pad>'])
+        self.target_vocab = target_vocab
         ### END YOUR CODE
 
-
-    
     def forward(self, input, dec_hidden=None):
         """ Forward pass of character decoder.
 
@@ -52,14 +52,12 @@ class CharDecoder(nn.Module):
         """
         ### YOUR CODE HERE for part 2b
         ### TODO - Implement the forward pass of the character decoder.
-        char_embedding = self.decoderCharEmb(input) # len, batch, char_embed_size
-        # h_ts  shape (len, b, hidden_size)
-        hiddens, dec_hidden= self.charDecoder(char_embedding, dec_hidden)
-        # score shape : (len, b, V)
-        score = self.char_output_projection(hiddens)
+        x_embed = self.decoderCharEmb(input)  # (length, batch, char_embedding_size)
+        x_lstm, dec_hidden = self.charDecoder(x_embed, dec_hidden)  # (length, batch, hidden_size)
+        score = self.char_output_projection(x_lstm)  # (length, batch, self.vocab_size)
+
         return score, dec_hidden
         ### END YOUR CODE 
-
 
     def train_forward(self, char_sequence, dec_hidden=None):
         """ Forward computation during training.
@@ -73,24 +71,16 @@ class CharDecoder(nn.Module):
         ### TODO - Implement training forward pass.
         ###
         ### Hint: - Make sure padding characters do not contribute to the cross-entropy loss.
-        ###       - char_sequence corresponds to the sequence x_1 ... x_{n+1} from the handout (e.g., <START>,m,u,s,i,c,<END>).
+        ###       - char_sequence corresponds to the sequence x_1 ... x_{n+1} from the handout
+        # (e.g., <START>,m,u,s,i,c,<END>).
+        input = char_sequence[:-1, :]
+        score, dec_hidden = self.forward(input, dec_hidden=dec_hidden)
 
-        # TODO: Check loss implementation
+        target = char_sequence[1:, :]
+        loss = nn.CrossEntropyLoss(reduction='sum',
+                                   ignore_index=self.target_vocab.char2id['<pad>'])
 
-        input  = char_sequence[:-1] # not get last character
-        score, dec_hidden = self.forward(input, dec_hidden) # shape (len, b, V)
-
-        target = char_sequence[1:].contiguous().view(-1) # not get first character
-        score  = score.view(-1, score.shape[-1])
-
-        loss   = nn.CrossEntropyLoss(
-            reduction= "sum", # Equation #15: When compute loss_char_dec, we take the sum, not average
-            ignore_index=self.target_vocab.char2id['<pad>'] # not take into account pad character when compute loss
-        )
-
-        # take input : (N, C), target (N)
-        return loss(score, target)
-
+        return loss(score.view(-1, score.shape[-1]), target.contiguous().view(-1))
         ### END YOUR CODE
 
     def decode_greedy(self, initialStates, device, max_length=21):
@@ -133,6 +123,4 @@ class CharDecoder(nn.Module):
 
         decodedWords = [i[0]for i in decodeTuple]
         return decodedWords
-
         ### END YOUR CODE
-
