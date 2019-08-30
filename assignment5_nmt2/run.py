@@ -99,7 +99,8 @@ def compute_corpus_level_bleu_score(references: List[List[str]], hypotheses: Lis
     if references[0][0] == '<s>':
         references = [ref[1:-1] for ref in references]
     bleu_score = corpus_bleu([[ref] for ref in references],
-                             [hyp.value for hyp in hypotheses])
+                             [hyp.value for hyp in hypotheses],
+                             smoothing_function=SmoothingFunction().method1)
     return bleu_score
 
 
@@ -127,8 +128,8 @@ def train(args: Dict):
 
     model = NMT(embed_size=int(args['--embed-size']),
                 hidden_size=int(args['--hidden-size']),
-                dropout_rate=float(args['--dropout']),
-                vocab=vocab, no_char_decoder=args['--no-char-decoder'])
+                vocab=vocab, dropout_rate=float(args['--dropout']),
+                no_char_decoder=args['--no-char-decoder'])
     model.train()
 
     uniform_init = float(args['--uniform-init'])

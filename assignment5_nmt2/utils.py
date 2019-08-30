@@ -16,43 +16,45 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 def pad_sents_char(sents, char_pad_token):
     """ Pad list of sentences according to the longest sentence in the batch and max_word_length.
-    @param sents (list[list[list[int]]]): list of sentences, result of `words2charindices()` 
+    @param sents (list[list[list[int]]]): list of sentences, result of `words2charindices()`
         from `vocab.py`
     @param char_pad_token (int): index of the character-padding token
     @returns sents_padded (list[list[list[int]]]): list of sentences where sentences/words shorter
         than the max length sentence/word are padded out with the appropriate pad token, such that
-        each sentence in the batch now has same number of words and each word has an equal 
+        each sentence in the batch now has same number of words and each word has an equal
         number of characters
         Output shape: (batch_size, max_sentence_length, max_word_length)
     """
     # Words longer than 21 characters should be truncated
-    max_word_length = 21 
-    max_sentence_length = max([len(s) for s in sents]) # len
+    max_word_length = 21
+
     ### YOUR CODE HERE for part 1f
     ### TODO:
-    ###     Perform necessary padding to the sentences in the batch similar to the pad_sents() 
-    ###     method below using the padding character from the arguments. You should ensure all 
-    ###     sentences have the same number of words and each word has the same number of 
-    ###     characters. 
-    ###     Set padding words to a `max_word_length` sized vector of padding characters.  
+    ###     Perform necessary padding to the sentences in the batch similar to the pad_sents()
+    ###     method below using the padding character from the arguments. You should ensure all
+    ###     sentences have the same number of words and each word has the same number of
+    ###     characters.
+    ###     Set padding words to a `max_word_length` sized vector of padding characters.
     ###
-    ###     You should NOT use the method `pad_sents()` below because of the way it handles 
+    ###     You should NOT use the method `pad_sents()` below because of the way it handles
     ###     padding and unknown words.
-    def sent_to_vec(sent):
-        # sent: list[list[int]] list of word, each word is a list of int
-        sent_padded = []
-        for word in sent[:max_sentence_length]:
-            word_padded = word[:max_word_length]
-            word_padded = word_padded + [char_pad_token] * (max_word_length - len(word_padded))
-            sent_padded.append(word_padded)
-        # pad sentence to have same number of word
-        sent_padded += [[char_pad_token] * max_word_length] * (max_sentence_length - len(sent_padded))
-        return sent_padded
-    sents_padded = [sent_to_vec(i) for i in sents]
 
-    return sents_padded
+    max_sent_len = len(max(sents, key=lambda x: len(x)))
+    sent_pad_token = [0]
+    sents_padded = [pad_sent(sent, sent_pad_token, max_sent_len) for sent in sents]
+
+    sents_padded_char = [[pad_word_char(word, char_pad_token) for word in sent]
+                         for sent in sents_padded]
+    ### END YOUR CODE
+
+    return sents_padded_char
+
+
+def pad_word_char(word, char_pad_token, max_word_length=21):
+    return [word[i] if i < len(word) else char_pad_token for i in range(max_word_length)]
 
 
 def pad_sents(sents, pad_token):
@@ -67,16 +69,16 @@ def pad_sents(sents, pad_token):
     """
     sents_padded = []
 
-    max_len = max(len(s) for s in sents)
-    batch_size = len(sents)
-
-    for s in sents:
-        padded = [pad_token] * max_len
-        padded[:len(s)] = s
-        sents_padded.append(padded)
+    ### COPY OVER YOUR CODE FROM ASSIGNMENT 4
+    max_len = len(max(sents, key=lambda x: len(x)))
+    sents_padded = [pad_sent(sent, pad_token, max_len) for sent in sents]
+    ### END YOUR CODE FROM ASSIGNMENT 4
 
     return sents_padded
 
+
+def pad_sent(sent, pad_token, max_len):
+    return [sent[i] if i < len(sent) else pad_token for i in range(max_len)]
 
 
 def read_corpus(file_path, source):
@@ -117,4 +119,3 @@ def batch_iter(data, batch_size, shuffle=False):
         tgt_sents = [e[1] for e in examples]
 
         yield src_sents, tgt_sents
-
