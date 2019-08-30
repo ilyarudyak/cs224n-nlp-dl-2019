@@ -3,7 +3,7 @@
 
 """
 CS224N 2018-19: Homework 5
-nmt_model.py: NMT Model
+nmt_model_2.py: NMT Model
 Pencheng Yin <pcyin@cs.cmu.edu>
 Sahil Chopra <schopra8@stanford.edu>
 """
